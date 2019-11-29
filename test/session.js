@@ -1015,6 +1015,33 @@ describe('session()', function(){
       });
     });
 
+    it('should force cookie if rolling function returns true and rolling option is set', function(done){
+      var server = createServer(
+        {
+          rollingFunction: function() {
+            return true;
+          },
+          rolling: true
+        },
+        function(req, res) {
+          req.session.user = "bob";
+          res.end();
+        }
+      );
+
+      request(server)
+      .get('/')
+      .expect(shouldSetCookie('connect.sid'))
+      .expect(200, function(err, res){
+        if (err) return done(err);
+        request(server)
+        .get('/')
+        .set('Cookie', cookie(res))
+        .expect(shouldSetCookie('connect.sid'))
+        .expect(200, done)
+      });
+    });
+
     it('should force cookie if rolling function returns true', function(done){
       var server = createServer(
         {
