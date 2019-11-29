@@ -76,6 +76,7 @@ var defer = typeof setImmediate === 'function'
  * @param {Boolean} [options.proxy]
  * @param {Boolean} [options.resave] Resave unmodified sessions back to the store
  * @param {Boolean} [options.rolling] Enable/disable rolling session expiration
+ * @param {Function} [options.rollingFunction] Function for enabling/disabling rolling session expiration
  * @param {Boolean} [options.saveUninitialized] Save uninitialized sessions to the store
  * @param {String|Array} [options.secret] Secret for signing session ID
  * @param {Object} [options.store=MemoryStore] Session store
@@ -107,6 +108,9 @@ function session(options) {
 
   // get the rolling session option
   var rollingSessions = Boolean(opts.rolling)
+
+  // get the rolling function option
+  var rollingFunction = opts.rollingFunction;
 
   // get the save uninitialized session option
   var saveUninitializedSession = opts.saveUninitialized
@@ -454,6 +458,14 @@ function session(options) {
       // cannot set cookie without a session ID
       if (typeof req.sessionID !== 'string') {
         return false;
+      }
+
+      if (
+        !rollingSessions &&
+        cookieId === req.sessionID &&
+        typeof rollingFunction === "function"
+      ) {
+        return rollingFunction(req);
       }
 
       return cookieId !== req.sessionID

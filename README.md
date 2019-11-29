@@ -247,6 +247,24 @@ set to `false`, the cookie will not be set on a response with an uninitialized
 session. This option only modifies the behavior when an existing session was
 loaded for the request.
 
+**Note** If this is set to true, option `rollingFunction` is ignored and every request will roll the session.
+
+##### rollingFunction
+
+Similar to [`rolling`](#rolling) option, but can conditionally roll the session. Only if the provided function returns true, the response will contain the cookie with the reset expiration to the original [`maxAge`](#cookiemaxage).
+
+```js
+/**
+ * @param {Object} req - Request object from the middleware.
+ * @returns {Boolean} - Whether the session will be rolled or not.
+ * Use req.session to access the session object.
+ */
+...
+rollingFunction: function([req]): Boolean {...}
+```
+
+**Note** In order for this function to be called, [`rolling`](#rolling) must be `false`.
+
 ##### saveUninitialized
 
 Forces a session that is "uninitialized" to be saved to the store. A session is
