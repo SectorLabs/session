@@ -962,6 +962,85 @@ describe('session()', function(){
       });
     });
 
+    it('should not force cookie if rolling function returns false', function(done){
+      var server = createServer(
+        {
+          rollingFunction: function() {
+            return false;
+          }
+        },
+        function(req, res) {
+          req.session.user = "bob";
+          res.end();
+        }
+      );
+
+      request(server)
+      .get('/')
+      .expect(shouldSetCookie('connect.sid'))
+      .expect(200, function(err, res){
+        if (err) return done(err);
+        request(server)
+        .get('/')
+        .set('Cookie', cookie(res))
+        .expect(shouldNotHaveHeader('Set-Cookie'))
+        .expect(200, done)
+      });
+    });
+
+    it('should force cookie if rolling function returns false and rolling option is set', function(done){
+      var server = createServer(
+        {
+          rollingFunction: function() {
+            return false;
+          },
+          rolling: true
+        },
+        function(req, res) {
+          req.session.user = "bob";
+          res.end();
+        }
+      );
+
+      request(server)
+      .get('/')
+      .expect(shouldSetCookie('connect.sid'))
+      .expect(200, function(err, res){
+        if (err) return done(err);
+        request(server)
+        .get('/')
+        .set('Cookie', cookie(res))
+        .expect(shouldSetCookie('connect.sid'))
+        .expect(200, done)
+      });
+    });
+
+    it('should force cookie if rolling function returns true', function(done){
+      var server = createServer(
+        {
+          rollingFunction: function() {
+            return true;
+          }
+        },
+        function(req, res) {
+          req.session.user = "bob";
+          res.end();
+        }
+      );
+
+      request(server)
+      .get('/')
+      .expect(shouldSetCookie('connect.sid'))
+      .expect(200, function(err, res){
+        if (err) return done(err);
+        request(server)
+        .get('/')
+        .set('Cookie', cookie(res))
+        .expect(shouldSetCookie('connect.sid'))
+        .expect(200, done)
+      });
+    });
+
     it('should not force cookie on uninitialized session if saveUninitialized option is set to false', function(done){
       var store = new session.MemoryStore()
       var server = createServer({ store: store, rolling: true, saveUninitialized: false })
